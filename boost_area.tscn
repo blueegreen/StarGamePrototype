@@ -1,0 +1,60 @@
+[gd_scene load_steps=11 format=3 uid="uid://co41rsbokwiwt"]
+
+[ext_resource type="Script" uid="uid://c0ymt58hkfqa8" path="res://boost_area.gd" id="1_lu74g"]
+[ext_resource type="Texture2D" uid="uid://c7657uywtc5h" path="res://assets/Ellipse 64.png" id="2_028l7"]
+[ext_resource type="PackedScene" uid="uid://dq8fjpmte5at3" path="res://warp_effect_test.tscn" id="3_028l7"]
+[ext_resource type="Texture2D" uid="uid://bqi3fe5rxdieh" path="res://assets/Star 3.png" id="4_f1yw3"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_0jnl2"]
+radius = 47.010635
+
+[sub_resource type="Gradient" id="Gradient_bw0iq"]
+offsets = PackedFloat32Array(0, 0.5487805, 1)
+colors = PackedColorArray(1, 1, 1, 1, 0.88235295, 1, 1, 1, 0.88235295, 1, 1, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_7mkcl"]
+gradient = SubResource("Gradient_bw0iq")
+
+[sub_resource type="Curve" id="Curve_7hivw"]
+_data = [Vector2(0, 0.6966293), 0.0, 0.0, 0, 0, Vector2(0.45789474, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_4v0n1"]
+curve = SubResource("Curve_7hivw")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_lksuy"]
+particle_flag_disable_z = true
+emission_shape = 1
+emission_sphere_radius = 116.19
+spread = 0.0
+initial_velocity_min = 250.0
+initial_velocity_max = 750.0
+gravity = Vector3(0, 0, 0)
+scale_min = 0.29999998
+scale_max = 0.75
+scale_curve = SubResource("CurveTexture_4v0n1")
+color_ramp = SubResource("GradientTexture1D_7mkcl")
+
+[node name="boost_area" type="Area2D"]
+script = ExtResource("1_lu74g")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+scale = Vector2(1.3893555, 1.3893555)
+shape = SubResource("CircleShape2D_0jnl2")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(1.3893555, 1.3893555)
+texture = ExtResource("2_028l7")
+
+[node name="warp_effect_test" parent="." instance=ExtResource("3_028l7")]
+
+[node name="GPUParticles2D" type="GPUParticles2D" parent="."]
+emitting = false
+amount = 40
+texture = ExtResource("4_f1yw3")
+lifetime = 0.7000000000000001
+one_shot = true
+explosiveness = 1.0
+process_material = SubResource("ParticleProcessMaterial_lksuy")
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]

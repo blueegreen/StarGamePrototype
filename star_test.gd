@@ -214,7 +214,7 @@ func boost(boost_amount := 1.):
 func _handle_boost(delta):
 	if _boost_time > 0:
 		_boost_time -= delta
-		_speed_multiplier = lerp(1.0, boost_multiplier, _boost_time / max_boost_time)
+		_speed_multiplier = lerp(1.0, boost_multiplier, min( 2. * _boost_time / max_boost_time, 1.))
 	else:
 		_speed_multiplier = 1.0
 

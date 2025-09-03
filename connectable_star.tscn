@@ -70,7 +70,7 @@ tracks/2/keys = {
 "times": PackedFloat32Array(0),
 "transitions": PackedFloat32Array(1),
 "update": 0,
-"values": [Color(0.5137255, 1, 1, 1)]
+"values": [Color(0.6927685, 0.72283393, 0.73295814, 1)]
 }
 
 [sub_resource type="Animation" id="Animation_l5c4m"]
@@ -110,7 +110,7 @@ tracks/2/keys = {
 "times": PackedFloat32Array(0, 0.5),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
-"values": [Color(0.5137255, 1, 1, 1), Color(1, 1, 1, 1)]
+"values": [Color(0.6927685, 0.72283393, 0.73295814, 1), Color(1, 1, 1, 1)]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_mrgbj"]
@@ -124,11 +124,12 @@ script = ExtResource("1_l5c4m")
 particles = NodePath("GPUParticles2D3")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-modulate = Color(0.5137255, 1, 1, 1)
+modulate = Color(0.6927685, 0.72283393, 0.73295814, 1)
 scale = Vector2(3.6185482, 3.6185482)
 texture = ExtResource("2_mrgbj")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+visible = false
 scale = Vector2(2.124092, 2.124092)
 shape = SubResource("CircleShape2D_u62bo")
 

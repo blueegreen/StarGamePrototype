@@ -1,43 +1,41 @@
-[gd_scene load_steps=39 format=3 uid="uid://cu35w3crwa4ri"]
+[gd_scene load_steps=35 format=3 uid="uid://cu35w3crwa4ri"]
 
-[ext_resource type="Script" uid="uid://bd8hxwj4f8th8" path="res://star_test.gd" id="1_snpff"]
+[ext_resource type="Shader" uid="uid://dxm8eyojukobw" path="res://assets/refraction.gdshader" id="1_dsagd"]
+[ext_resource type="Script" uid="uid://bd8hxwj4f8th8" path="res://star_test.gd" id="2_dsagd"]
 [ext_resource type="Texture2D" uid="uid://cs4uth2vsgk0v" path="res://assets/Group 82.png" id="2_e51mn"]
 [ext_resource type="Texture2D" uid="uid://b5xmdgr2f7bs8" path="res://assets/Frame 51.png" id="2_snpff"]
-[ext_resource type="Shader" uid="uid://dvid8xqhostwv" path="res://assets/dynamic_stars.gdshader" id="4_httow"]
 [ext_resource type="Texture2D" uid="uid://dwl4a74mpyw6e" path="res://assets/Rectangle 175.png" id="5_f07rf"]
-[ext_resource type="PackedScene" uid="uid://dq8fjpmte5at3" path="res://warp_effect_test.tscn" id="6_0jnl2"]
 [ext_resource type="Texture2D" uid="uid://coa3x5bijvube" path="res://assets/Rectangle 176.png" id="6_n2kti"]
 [ext_resource type="PackedScene" uid="uid://co41rsbokwiwt" path="res://boost_area.tscn" id="7_unidx"]
 [ext_resource type="Texture2D" uid="uid://bqi3fe5rxdieh" path="res://assets/Star 3.png" id="8_u62bo"]
 [ext_resource type="PackedScene" uid="uid://c4jci14i2xx02" path="res://connectable_star.tscn" id="9_dsagd"]
 
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_httow"]
-frequency = 0.0667
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_dsagd"]
+frequency = 0.0007
 
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_n2kti"]
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_0jnl2"]
 width = 1920
 height = 1080
-noise = SubResource("FastNoiseLite_httow")
+noise = SubResource("FastNoiseLite_dsagd")
+seamless = true
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_unidx"]
-shader = ExtResource("4_httow")
-shader_parameter/noise_texture = SubResource("NoiseTexture2D_n2kti")
-shader_parameter/star_threshold = 0.8950000000040745
-shader_parameter/speed = Vector2(0.5, 0.5)
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_0jnl2"]
+shader = ExtResource("1_dsagd")
+shader_parameter/NOISE_TEXTURE = SubResource("NoiseTexture2D_0jnl2")
+shader_parameter/blur_radius = 4.0
+shader_parameter/halo_strength = 0.02
+shader_parameter/noise_scale = 1.0
+shader_parameter/strength = 1.0
 
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_u62bo"]
-frequency = 0.4055
-
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_f07rf"]
-resource_local_to_scene = true
-noise = SubResource("FastNoiseLite_u62bo")
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_f07rf"]
-resource_local_to_scene = true
-shader = ExtResource("4_httow")
-shader_parameter/noise_texture = SubResource("NoiseTexture2D_f07rf")
-shader_parameter/star_threshold = 0.8500000000058208
-shader_parameter/speed = Vector2(0.5, 0.5)
+[sub_resource type="Environment" id="Environment_0jnl2"]
+background_mode = 3
+tonemap_mode = 3
+glow_levels/1 = 2.76
+glow_intensity = 2.18
+glow_strength = 0.95
+glow_bloom = 0.04
+glow_blend_mode = 1
+adjustment_saturation = 0.8
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_httow"]
 particles_animation = true
@@ -144,47 +142,26 @@ colors = PackedColorArray(0.96031827, 0.8145955, 1, 0.28235295, 1, 0.75686276, 1
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_unidx"]
 size = Vector2(92, 92)
 
-[sub_resource type="Environment" id="Environment_0jnl2"]
-background_mode = 3
-glow_enabled = true
-glow_strength = 1.11
-glow_bloom = 0.2
-glow_blend_mode = 0
-
 [node name="movement_test" type="Node2D"]
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
-layer = -1
-follow_viewport_enabled = true
-follow_viewport_scale = 0.5
 
 [node name="ColorRect" type="ColorRect" parent="CanvasLayer"]
-material = SubResource("ShaderMaterial_unidx")
-offset_left = -3034.0
-offset_top = -1416.0
-offset_right = 5784.0
-offset_bottom = 3154.0
-metadata/_edit_use_anchors_ = true
+material = SubResource("ShaderMaterial_0jnl2")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
-[node name="CanvasLayer2" type="CanvasLayer" parent="."]
-layer = -1
-follow_viewport_enabled = true
-follow_viewport_scale = 0.6
-
-[node name="ColorRect" type="ColorRect" parent="CanvasLayer2"]
-z_index = -1
-material = SubResource("ShaderMaterial_f07rf")
-offset_left = -2208.3333
-offset_top = -1180.0
-offset_right = 4039.9998
-offset_bottom = 2628.3333
-mouse_filter = 2
-color = Color(0, 0, 0, 1)
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_0jnl2")
 
 [node name="star_test" type="CharacterBody2D" parent="." node_paths=PackedStringArray("trail", "sprite", "movement_particles", "collision_particles", "held_star_particles")]
 position = Vector2(547, 351)
 motion_mode = 1
-script = ExtResource("1_snpff")
+script = ExtResource("2_dsagd")
+max_boost_time = 1.0
 trail = NodePath("Line2D")
 sprite = NodePath("Sprite2D")
 movement_particles = NodePath("GPUParticles2D")
@@ -231,8 +208,9 @@ shape = SubResource("CircleShape2D_n2kti")
 [node name="star_test_AGENT" type="CharacterBody2D" parent="." node_paths=PackedStringArray("ai_follow", "trail", "sprite", "movement_particles", "collision_particles", "held_star_particles")]
 position = Vector2(1362, 625)
 motion_mode = 1
-script = ExtResource("1_snpff")
+script = ExtResource("2_dsagd")
 mode = 3
+max_boost_time = 1.0
 ai_follow = NodePath("../star_test")
 trail = NodePath("Line2D")
 sprite = NodePath("Sprite2D")
@@ -343,15 +321,10 @@ position = Vector2(576, -1024)
 rotation = 1.3089969
 
 [node name="connectable_star" parent="." instance=ExtResource("9_dsagd")]
-position = Vector2(-1200, -277)
+position = Vector2(934, 372)
 
 [node name="connectable_star2" parent="." instance=ExtResource("9_dsagd")]
 position = Vector2(-1815, -912)
 
 [node name="connectable_star3" parent="." instance=ExtResource("9_dsagd")]
 position = Vector2(-890, -1036)
-
-[node name="warp_effect_test" parent="." instance=ExtResource("6_0jnl2")]
-
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource("Environment_0jnl2")

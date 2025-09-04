@@ -1,0 +1,69 @@
+[gd_scene load_steps=5 format=3 uid="uid://c33y1qimuxjo4"]
+
+[sub_resource type="Shader" id="Shader_pf14e"]
+code = "shader_type canvas_item;
+
+uniform sampler2D noise_texture;
+//uniform sampler2D SCREEN_TEXTURE : hint_screen_texture, filter_linear_mipmap;
+uniform float refraction_strength = 0.05;
+
+void vertex() {
+	// Called for every vertex the material is visible on.
+}
+
+void fragment() {
+	vec2 uv = SCREEN_UV;
+	vec3 noise_map = texture(noise_texture, uv).rgb;
+	vec3 noise2 = texture(noise_texture, fract(uv * 0.3 + vec2(1.2, 0.3) * TIME * 0.02)).rgb * 2.;
+	vec3 noise3 = texture(noise_texture, fract(uv * 0.55 + TIME * 0.01)).rgb * 2.;
+	vec3 mixed_noise = smoothstep(0., 0.6, pow(noise_map, vec3(1.2))) - noise2;
+	float prism_mask = smoothstep(0.4, 1.5, mixed_noise.r + noise3.r) * (1. - mixed_noise.r);
+
+	vec3 halo;
+	vec2 shift = mix(vec2(-1., 0), vec2(1., 0), mixed_noise.r);
+    halo.r = texture(noise_texture, uv + shift * 1.0 * refraction_strength).r;
+    halo.g = texture(noise_texture, uv + shift * 0.5 * refraction_strength).g;
+    halo.b = texture(noise_texture, uv - shift * 1.2 * refraction_strength).b;
+
+	COLOR.rgb = mix(mixed_noise, halo, prism_mask);
+
+	//COLOR.rgb = vec3(prism_mask);
+	// Called for every pixel the material is visible on.
+}
+
+//void light() {
+//	// Called for every pixel for every light affecting the CanvasItem.
+//	// Uncomment to replace the default light processing function with this one.
+//}
+"
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_3h0p4"]
+noise_type = 2
+frequency = 0.0045
+fractal_octaves = 1
+cellular_distance_function = 1
+domain_warp_type = 2
+domain_warp_amplitude = 8.4
+domain_warp_frequency = 0.01
+domain_warp_fractal_type = 2
+domain_warp_fractal_octaves = 2
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_3dmi5"]
+width = 1920
+height = 1080
+noise = SubResource("FastNoiseLite_3h0p4")
+seamless = true
+seamless_blend_skirt = 1.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ub807"]
+shader = SubResource("Shader_pf14e")
+shader_parameter/noise_texture = SubResource("NoiseTexture2D_3dmi5")
+shader_parameter/refraction_strength = 0.029999999998835847
+
+[node name="ShaderTester" type="ColorRect"]
+material = SubResource("ShaderMaterial_ub807")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2

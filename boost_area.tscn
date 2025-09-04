@@ -37,6 +37,7 @@ color_ramp = SubResource("GradientTexture1D_7mkcl")
 
 [node name="boost_area" type="Area2D"]
 script = ExtResource("1_lu74g")
+boost_amount = 0.3000000000029104
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 scale = Vector2(1.3893555, 1.3893555)

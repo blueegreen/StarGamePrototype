@@ -4,8 +4,8 @@ uniform sampler2D SCREEN_TEXTURE : hint_screen_texture, filter_linear_mipmap;
 uniform sampler2D NOISE_TEXTURE; // add a noise texture
 uniform float blur_radius = 4.0;
 uniform float halo_strength = 0.02;
-uniform float noise_scale = 6.0;
-uniform float strength = 0.5;
+uniform float noise_scale = 1.0;
+uniform float strength = 1.;
 
 float luminance(vec3 c) {
     return dot(c, vec3(0.299, 0.587, 0.114));
@@ -42,7 +42,7 @@ void fragment() {
     float mask = smoothstep(0.2, 0.6, lum); // stronger only on bright regions
     vec3 final_col = mix(col, halo, mask * strength);
 
-    COLOR = vec4(final_col, 1.0);
+    COLOR = vec4(final_col, 1.0) * 1.5;
 	//COLOR.rgb = vec3(mask * (1.5 - col.r));
 	//COLOR = vec4(dir.x, dir.y, 0, 1.);
 }

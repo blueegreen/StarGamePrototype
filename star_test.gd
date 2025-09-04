@@ -1,7 +1,7 @@
 extends CharacterBody2D
 class_name StarTest
 
-enum movement_mode {MOUSE_FOLLOW, ARROW_ROTATE, MOUSE_ANCHOR, AI_MODE}
+enum movement_mode {MOUSE_FOLLOW, ARROW_ROTATE, MOUSE_ANCHOR, MOUSE_MIRROR, AI_MODE}
 
 @export_category("basic variables")
 @export var mode : movement_mode
@@ -11,11 +11,13 @@ enum movement_mode {MOUSE_FOLLOW, ARROW_ROTATE, MOUSE_ANCHOR, AI_MODE}
 @export var mouse_deadzone_radius := 50.
 @export var boost_multiplier := 2.5
 @export var max_boost_time := 3.
+@export var collision_bounce_velocity_fraction := 0.8;
+@export var collision_slide_boost_time := 1.;
+@export var collision_applied_impulse := 0.1;
 @export var ai_follow : StarTest
 
 @export_category("mouse mode variables")
 @export var mouse_mode_acc := 2000.
-@export var min_dist_to_mouse = 100.
 @export var base_turn_rate = 3.
 @export var acc_turn_rate = 5.
 
@@ -25,10 +27,16 @@ enum movement_mode {MOUSE_FOLLOW, ARROW_ROTATE, MOUSE_ANCHOR, AI_MODE}
 @export var arrow_mode_acc := 1500.
 var _rotation_speed := 1.
 
-@export_category("arrow mode variables")
+@export_category("mouse anchor mode variables")
 @export var anchor_strength := 3.
 @export var anchor_mode_acc := 2000.
 @export var anchor_acc_turn_rate := 6.
+
+@export_category("mouse mirror mode variables")
+@export var mouse_sensitivity_range := 40.
+@export var mouse_mirror_acc := 2000.
+@export var mirror_base_turn_rate = 3.
+@export var mirror_acc_turn_rate = 12.
 
 @export_category("display variables")
 @export var trail_segment_length := 10.
@@ -71,6 +79,8 @@ func _process(delta):
 			_arrow_mode_process(delta)
 		movement_mode.MOUSE_ANCHOR:
 			_mouse_anchor_process(delta)
+		movement_mode.MOUSE_MIRROR:
+			_mouse_mirror_process(delta)
 		movement_mode.AI_MODE:
 			_ai_mode_process(delta)
 	
@@ -105,7 +115,6 @@ func _update_trail_width_curve():
 		var width : float = lerp(min_width, max_width_px, norm_speed) / max_width_px
 		curve.add_point(Vector2(t, width))
 
-	curve.bake()
 	trail.width_curve = curve
 
 func _movement_animation(delta):
@@ -126,14 +135,14 @@ func _handle_collision():
 	var dot = v_norm.dot(normal)
 
 	if dot < -0.95:
-		velocity = velocity.bounce(normal) * 1.0
+		velocity = velocity.bounce(normal) * collision_bounce_velocity_fraction
 		velocity = velocity.limit_length(_init_max_speed * boost_multiplier)
 		if collider is RigidBody2D:
-			collider.apply_impulse(-normal * velocity.length() * 0.1, collision_data.get_position() - collider.global_position)
+			collider.apply_impulse(-normal * velocity.length() * collision_applied_impulse, collision_data.get_position() - collider.global_position)
 	else:
 		var tangent = v_norm.slide(normal)
 		velocity = tangent * velocity.length()
-		boost(get_process_delta_time())
+		boost(get_process_delta_time() * 1. / collision_slide_boost_time)
 	
 	_current_speed = velocity.length() if mode != movement_mode.ARROW_ROTATE else _current_speed
 	_direction = velocity.angle() if mode != movement_mode.ARROW_ROTATE else _direction
@@ -173,10 +182,10 @@ func _mouse_anchor_process(delta):
 func _mouse_mode_process(delta):
 	var acc_mode := Input.get_axis("right_click", "left_click")
 	var target_speed = (_init_brake_speed if acc_mode == -1 else _init_max_speed if acc_mode == 1 else _init_base_speed) * _speed_multiplier
-	_current_speed = move_toward(_current_speed, target_speed, delta * mouse_mode_acc)
+	_current_speed = move_toward(_current_speed, target_speed, delta * mouse_mirror_acc)
 	
 	var intended_dir = global_position.angle_to_point(get_global_mouse_position()) if global_position.distance_to(get_global_mouse_position()) > mouse_deadzone_radius else _direction
-	_direction = lerp_angle(_direction, intended_dir, (base_turn_rate if not acc_mode else acc_turn_rate) * delta)
+	_direction = lerp_angle(_direction, intended_dir, (mirror_base_turn_rate if not acc_mode else mirror_acc_turn_rate) * delta)
 
 	velocity = Vector2.from_angle(_direction) * _current_speed
 
@@ -194,6 +203,27 @@ func _arrow_mode_process(delta):
 	velocity = velocity.move_toward(Vector2.from_angle(_direction) * ((_init_base_speed if not acc_mode else _init_max_speed) * _speed_multiplier), arrow_mode_acc * delta)
 
 	_current_speed = velocity.length()
+
+var _mouse_move_event : InputEventMouseMotion
+func _mouse_mirror_process(delta):
+	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	if not _mouse_move_event:
+		return
+	
+	var relative_weight : float = lerp(0., 1., _mouse_move_event.relative.length() / mouse_sensitivity_range)
+	
+	var acc_mode := Input.get_axis("right_click", "left_click")
+	var target_speed := (_init_brake_speed if acc_mode == -1 else _init_max_speed if acc_mode == 1 else _init_base_speed) * _speed_multiplier
+	_current_speed = move_toward(_current_speed, target_speed, delta * mouse_mode_acc)
+	
+	var intended_dir = _mouse_move_event.relative.angle()
+	_direction = lerp_angle(_direction, intended_dir, (base_turn_rate if not acc_mode else acc_turn_rate) * delta * relative_weight)
+
+	velocity = Vector2.from_angle(_direction) * _current_speed
+
+func _input(event):
+	if event is InputEventMouseMotion:
+		_mouse_move_event = event
 
 func _ai_mode_process(delta):
 	if not ai_follow:

@@ -5,15 +5,16 @@ enum movement_mode {MOUSE_FOLLOW, ARROW_ROTATE, MOUSE_ANCHOR, MOUSE_MIRROR, AI_M
 
 @export_category("basic variables")
 @export var mode : movement_mode
-@export var base_speed := 750. 
+@export var base_speed := 750.
 @export var max_speed := 1500.
 @export var brake_speed := 200.
 @export var mouse_deadzone_radius := 50.
 @export var boost_multiplier := 2.5
 @export var max_boost_time := 3.
-@export var collision_bounce_velocity_fraction := 0.8;
-@export var collision_slide_boost_time := 1.;
-@export var collision_applied_impulse := 0.1;
+@export var collision_bounce_velocity_fraction := 0.8
+@export var collision_slide_boost_time := 1.
+@export var collision_applied_impulse := 0.1
+@export var max_camera_zoom := Vector2(0.5, 0.5)
 @export var ai_follow : StarTest
 
 @export_category("mouse mode variables")
@@ -35,8 +36,10 @@ var _rotation_speed := 1.
 @export_category("mouse mirror mode variables")
 @export var mouse_sensitivity_range := 40.
 @export var mouse_mirror_acc := 2000.
-@export var mirror_base_turn_rate = 3.
+@export var mirror_base_turn_rate = 8.
 @export var mirror_acc_turn_rate = 12.
+@export var mirror_relative_smooth := 12.
+@export var mirror_deadzone := 0.5
 
 @export_category("display variables")
 @export var trail_segment_length := 10.
@@ -50,6 +53,7 @@ var _rotation_speed := 1.
 @export var movement_particles : GPUParticles2D
 @export var collision_particles : GPUParticles2D
 @export var held_star_particles : GPUParticles2D
+@export var camera : Camera2D
 
 var speeds : Array[float] = []
 
@@ -62,16 +66,27 @@ var _init_brake_speed : float
 var _held_star : ConnectableStarTest
 var _speed_multiplier := 1.0
 
+# Mouse motion accumulation & smoothing (used by MOUSE_MIRROR)
+var _mouse_relative := Vector2.ZERO
+var _smoothed_relative := Vector2.ZERO
+
 func _ready():
 	_init_base_speed = base_speed
 	_init_max_speed = max_speed
 	_init_brake_speed = brake_speed
+	# Capture mouse once on start (locked & hidden) so relative events are reliable
+	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+
+func _notification(what):
+	if what == NOTIFICATION_APPLICATION_FOCUS_IN:
+		# recapture when the window regains focus (OS may have released it)
+		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
 func _process(delta):
 	_render_trail()
 	_movement_animation(delta)
 	_handle_boost(delta)
-	
+
 	match mode:
 		movement_mode.MOUSE_FOLLOW:
 			_mouse_mode_process(delta)
@@ -83,11 +98,11 @@ func _process(delta):
 			_mouse_mirror_process(delta)
 		movement_mode.AI_MODE:
 			_ai_mode_process(delta)
-	
+
 	move_and_slide()
 	_handle_collision()
 	_handle_held_star()
-	
+
 	if Input.is_action_just_pressed("ui_cancel"):
 		get_tree().free()
 
@@ -119,9 +134,9 @@ func _update_trail_width_curve():
 
 func _movement_animation(delta):
 	movement_particles.amount_ratio = velocity.length() / (_init_max_speed * _speed_multiplier)
-	var target_zoom := Vector2.ONE.lerp(Vector2(0.6, 0.6), velocity.length() / (_init_max_speed * boost_multiplier))
+	var target_zoom := Vector2.ONE.lerp(max_camera_zoom, velocity.length() / (_init_max_speed * boost_multiplier))
 	target_zoom = target_zoom.limit_length(sqrt(2))
-	$Camera2D.zoom = $Camera2D.zoom.lerp(target_zoom, delta * 2.)
+	camera.zoom = camera.zoom.lerp(target_zoom, delta * 2.)
 
 func _handle_collision():
 	if get_slide_collision_count() < 1:
@@ -143,10 +158,10 @@ func _handle_collision():
 		var tangent = v_norm.slide(normal)
 		velocity = tangent * velocity.length()
 		boost(get_process_delta_time() * 1. / collision_slide_boost_time)
-	
+
 	_current_speed = velocity.length() if mode != movement_mode.ARROW_ROTATE else _current_speed
 	_direction = velocity.angle() if mode != movement_mode.ARROW_ROTATE else _direction
-	
+
 	_collision_visual_effect(collision_data)
 
 func _collision_visual_effect(collision_data : KinematicCollision2D):
@@ -156,15 +171,15 @@ func _collision_visual_effect(collision_data : KinematicCollision2D):
 	new_particles.process_material.direction = Vector3(collision_data.get_normal().x, collision_data.get_normal().y, 0)
 	new_particles.emitting = true
 	new_particles.global_position = collision_data.get_position()
-	
+
 	await get_tree().create_timer(new_particles.lifetime).timeout
 	new_particles.queue_free()
 
 func _mouse_anchor_process(delta):
 	Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED_HIDDEN)
-	
+
 	var acc_mode := Input.get_axis("right_click", "left_click")
-	
+
 	match acc_mode:
 		0.0:
 			var target_position = global_position.lerp(get_global_mouse_position(), anchor_strength * delta)
@@ -182,8 +197,8 @@ func _mouse_anchor_process(delta):
 func _mouse_mode_process(delta):
 	var acc_mode := Input.get_axis("right_click", "left_click")
 	var target_speed = (_init_brake_speed if acc_mode == -1 else _init_max_speed if acc_mode == 1 else _init_base_speed) * _speed_multiplier
-	_current_speed = move_toward(_current_speed, target_speed, delta * mouse_mirror_acc)
-	
+	_current_speed = move_toward(_current_speed, target_speed, delta * mouse_mode_acc)
+
 	var intended_dir = global_position.angle_to_point(get_global_mouse_position()) if global_position.distance_to(get_global_mouse_position()) > mouse_deadzone_radius else _direction
 	_direction = lerp_angle(_direction, intended_dir, (mirror_base_turn_rate if not acc_mode else mirror_acc_turn_rate) * delta)
 
@@ -193,37 +208,44 @@ func _arrow_mode_process(delta):
 	var acc_mode := \
 	(Input.is_action_pressed("left") and Input.is_action_pressed("right")) or \
 	(Input.is_action_pressed("left_click") and Input.is_action_pressed("right_click"))
-	
+
 	var dir = (Input.get_axis("left", "right")) + (Input.get_axis("left_click", "right_click"))
 	_rotation_speed = move_toward(_rotation_speed, dir * rotation_rate, rotation_change_rate * delta)
-	
+
 	_direction += _rotation_speed * delta
 	sprite.rotation = _direction
-	
+
 	velocity = velocity.move_toward(Vector2.from_angle(_direction) * ((_init_base_speed if not acc_mode else _init_max_speed) * _speed_multiplier), arrow_mode_acc * delta)
 
 	_current_speed = velocity.length()
 
-var _mouse_move_event : InputEventMouseMotion
 func _mouse_mirror_process(delta):
-	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
-	if not _mouse_move_event:
+	_smoothed_relative = _smoothed_relative.lerp(_mouse_relative, clamp(mirror_relative_smooth * delta, 0.0, 1.0))
+
+	var magnitude := _smoothed_relative.length()
+
+	if magnitude <= mirror_deadzone:
+		_mouse_relative = Vector2.ZERO
 		return
-	
-	var relative_weight : float = lerp(0., 1., _mouse_move_event.relative.length() / mouse_sensitivity_range)
-	
+
+	var relative_weight : float = clamp(magnitude / mouse_sensitivity_range, 0.0, 1.0)
+
 	var acc_mode := Input.get_axis("right_click", "left_click")
 	var target_speed := (_init_brake_speed if acc_mode == -1 else _init_max_speed if acc_mode == 1 else _init_base_speed) * _speed_multiplier
-	_current_speed = move_toward(_current_speed, target_speed, delta * mouse_mode_acc)
-	
-	var intended_dir = _mouse_move_event.relative.angle()
-	_direction = lerp_angle(_direction, intended_dir, (base_turn_rate if not acc_mode else acc_turn_rate) * delta * relative_weight)
+	_current_speed = move_toward(_current_speed, target_speed, delta * mouse_mirror_acc)
+
+	var intended_dir = _smoothed_relative.angle()
+	var turn_rate = (mirror_base_turn_rate if acc_mode == 0 else mirror_acc_turn_rate)
+	_direction = lerp_angle(_direction, intended_dir, turn_rate * delta * relative_weight)
 
 	velocity = Vector2.from_angle(_direction) * _current_speed
 
+	_mouse_relative = Vector2.ZERO
+
 func _input(event):
 	if event is InputEventMouseMotion:
-		_mouse_move_event = event
+		# copy and accumulate; don't store the event object (Godot pools events)
+		_mouse_relative += event.relative
 
 func _ai_mode_process(delta):
 	if not ai_follow:
@@ -232,7 +254,7 @@ func _ai_mode_process(delta):
 	var acc_mode := -1. if dist_to_follow < 200. else 0. if dist_to_follow < 600. else 1.
 	var target_speed = (_init_brake_speed if acc_mode == -1 else _init_max_speed if acc_mode == 1 else _init_base_speed) * _speed_multiplier
 	_current_speed = move_toward(_current_speed, target_speed, delta * mouse_mode_acc)
-	
+
 	var intended_dir = global_position.angle_to_point(ai_follow.global_position) if global_position.distance_to(ai_follow.global_position) > mouse_deadzone_radius else _direction
 	_direction = lerp_angle(_direction, intended_dir, (base_turn_rate if not acc_mode else acc_turn_rate) * delta)
 

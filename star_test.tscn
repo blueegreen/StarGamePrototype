@@ -103,7 +103,7 @@ colors = PackedColorArray(1, 1, 1, 0.1764706, 1, 0.8156863, 1, 1, 1, 0.9137255, 
 [sub_resource type="CircleShape2D" id="CircleShape2D_n2kti"]
 radius = 16.0
 
-[node name="star_test" type="CharacterBody2D" node_paths=PackedStringArray("trail", "sprite", "movement_particles", "collision_particles", "held_star_particles")]
+[node name="star_test" type="CharacterBody2D" node_paths=PackedStringArray("trail", "sprite", "movement_particles", "collision_particles", "held_star_particles", "camera")]
 motion_mode = 1
 script = ExtResource("1_b24f8")
 trail = NodePath("Line2D")
@@ -111,6 +111,7 @@ sprite = NodePath("Sprite2D")
 movement_particles = NodePath("GPUParticles2D")
 collision_particles = NodePath("GPUParticles2D2")
 held_star_particles = NodePath("GPUParticles2D3")
+camera = NodePath("Camera2D")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = ExtResource("2_w631g")

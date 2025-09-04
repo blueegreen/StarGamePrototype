@@ -96,7 +96,6 @@ environment = SubResource("Environment_0jnl2")
 [node name="star_test" parent="." instance=ExtResource("3_dsagd")]
 position = Vector2(547, 351)
 mode = 3
-max_boost_time = 3.0
 
 [node name="star_testAGENT" parent="." node_paths=PackedStringArray("ai_follow") instance=ExtResource("3_dsagd")]
 process_mode = 4

@@ -1,0 +1,49 @@
+[gd_scene load_steps=8 format=3 uid="uid://dfrnnsbtkp2rx"]
+
+[ext_resource type="Script" uid="uid://flhf57cou4a4" path="res://simple_star.gd" id="1_b7pvt"]
+[ext_resource type="PackedScene" uid="uid://bn4wg88cgotrd" path="res://mechanics/loop_detector_test.tscn" id="2_iytix"]
+[ext_resource type="Texture2D" uid="uid://b5xmdgr2f7bs8" path="res://assets/Frame 51.png" id="3_xpc7x"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ihh2q"]
+atlas = ExtResource("3_xpc7x")
+region = Rect2(0, 0, 40, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_a04oi"]
+atlas = ExtResource("3_xpc7x")
+region = Rect2(40, 0, 40, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8eisa"]
+atlas = ExtResource("3_xpc7x")
+region = Rect2(80, 0, 40, 40)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_j33hg"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ihh2q")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_a04oi")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8eisa")
+}],
+"loop": true,
+"name": &"default",
+"speed": 1.0
+}]
+
+[node name="simple_star" type="Node2D"]
+script = ExtResource("1_b7pvt")
+text = "Hello there"
+
+[node name="loop_detector_test" parent="." instance=ExtResource("2_iytix")]
+detection_radius = 600.0
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+scale = Vector2(2.52, 2.52)
+sprite_frames = SubResource("SpriteFrames_j33hg")
+autoplay = "default"
+frame_progress = 0.08809902
+
+[connection signal="looped" from="loop_detector_test" to="." method="_on_loop_detector_test_looped"]

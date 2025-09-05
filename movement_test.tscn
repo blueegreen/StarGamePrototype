@@ -31,7 +31,7 @@ shader_parameter/refraction_strength = 0.00500000000465661
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_dsagd"]
 frequency = 0.0007
 
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_0jnl2"]
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_n87fm"]
 width = 1920
 height = 1080
 noise = SubResource("FastNoiseLite_dsagd")
@@ -39,7 +39,7 @@ seamless = true
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_0jnl2"]
 shader = ExtResource("1_dsagd")
-shader_parameter/NOISE_TEXTURE = SubResource("NoiseTexture2D_0jnl2")
+shader_parameter/NOISE_TEXTURE = SubResource("NoiseTexture2D_n87fm")
 shader_parameter/blur_radius = 4.0
 shader_parameter/halo_strength = 0.02
 shader_parameter/noise_scale = 1.0
@@ -102,7 +102,6 @@ environment = SubResource("Environment_0jnl2")
 
 [node name="star_test" parent="." instance=ExtResource("3_dsagd")]
 position = Vector2(547, 351)
-mode = 3
 
 [node name="star_testAGENT" parent="." node_paths=PackedStringArray("ai_follow") instance=ExtResource("3_dsagd")]
 position = Vector2(-686, -580)

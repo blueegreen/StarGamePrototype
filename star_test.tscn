@@ -1,10 +1,9 @@
-[gd_scene load_steps=27 format=3 uid="uid://bkfiu57m6hvl1"]
+[gd_scene load_steps=26 format=3 uid="uid://bkfiu57m6hvl1"]
 
 [ext_resource type="Script" uid="uid://bd8hxwj4f8th8" path="res://star_test.gd" id="1_b24f8"]
 [ext_resource type="Texture2D" uid="uid://cs4uth2vsgk0v" path="res://assets/Group 82.png" id="2_w631g"]
 [ext_resource type="Texture2D" uid="uid://b5xmdgr2f7bs8" path="res://assets/Frame 51.png" id="3_p7dbm"]
 [ext_resource type="Texture2D" uid="uid://bqi3fe5rxdieh" path="res://assets/Star 3.png" id="4_fqsos"]
-[ext_resource type="Texture2D" uid="uid://bii600oivvd4t" path="res://assets/gradient_circle.png" id="5_w631g"]
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_httow"]
 particles_animation = true
@@ -128,13 +127,14 @@ radius = 16.0
 [node name="star_test" type="CharacterBody2D" node_paths=PackedStringArray("trail", "sprite", "movement_particles", "collision_particles", "held_star_particles", "camera")]
 motion_mode = 1
 script = ExtResource("1_b24f8")
+mode = 3
+mirror_relative_smooth = 48.0
 trail = NodePath("Line2D")
 sprite = NodePath("Sprite2D")
 movement_particles = NodePath("GPUParticles2D")
 collision_particles = NodePath("GPUParticles2D2")
 held_star_particles = NodePath("GPUParticles2D3")
 camera = NodePath("Camera2D")
-light_texture = ExtResource("5_w631g")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = ExtResource("2_w631g")

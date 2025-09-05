@@ -1,51 +1,50 @@
-[gd_scene load_steps=18 format=3 uid="uid://huiongwg43in"]
+[gd_scene load_steps=17 format=3 uid="uid://huiongwg43in"]
 
-[ext_resource type="Shader" uid="uid://dnxyfy2ncnw0q" path="res://assets/lit_effect_shader.gdshader" id="1_2v0wx"]
+[ext_resource type="Shader" uid="uid://canwfpwpx2u1r" path="res://assets/light_effect1.gdshader" id="1_ahekq"]
 [ext_resource type="Texture2D" uid="uid://m55gvo4mmare" path="res://assets/Group 83.png" id="1_hn7fv"]
+[ext_resource type="Texture2D" uid="uid://c7ysxh22xsnf7" path="res://assets/rainbow_gradient.tres" id="2_2v0wx"]
 [ext_resource type="Texture2D" uid="uid://duq6ffyrvhu2e" path="res://assets/Group 83_n.png" id="2_wl5k4"]
 [ext_resource type="Texture2D" uid="uid://dtdc4bvv4kyj0" path="res://assets/Group 83_s.png" id="3_uyv30"]
 [ext_resource type="PackedScene" uid="uid://bkfiu57m6hvl1" path="res://star_test.tscn" id="4_ahekq"]
 [ext_resource type="Texture2D" uid="uid://bii600oivvd4t" path="res://assets/gradient_circle.png" id="5_2v0wx"]
 [ext_resource type="Texture2D" uid="uid://dsn06wknfv3q0" path="res://assets/Screenshot 2025-06-11 112341.png" id="5_hn7fv"]
-[ext_resource type="Shader" uid="uid://1pslorcy0i1y" path="res://assets/voronoi_glass.gdshader" id="6_ahekq"]
 [ext_resource type="Shader" uid="uid://dxm8eyojukobw" path="res://assets/refraction.gdshader" id="7_2v0wx"]
 
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_2v0wx"]
+noise_type = 3
+frequency = 0.0028
+fractal_octaves = 2
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_aiyk2"]
+noise = SubResource("FastNoiseLite_2v0wx")
+seamless = true
+seamless_blend_skirt = 1.0
+
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_aiyk2"]
-shader = ExtResource("1_2v0wx")
+resource_local_to_scene = true
+shader = ExtResource("1_ahekq")
+shader_parameter/light_height = 0.3
+shader_parameter/radius = 400.0
+shader_parameter/falloff = 1.17200005241012
+shader_parameter/time_scale = 0.5
+shader_parameter/colour_spectrum = ExtResource("2_2v0wx")
+shader_parameter/noise_texture = SubResource("NoiseTexture2D_aiyk2")
 
 [sub_resource type="CanvasTexture" id="CanvasTexture_aiyk2"]
 diffuse_texture = ExtResource("1_hn7fv")
 normal_texture = ExtResource("2_wl5k4")
 specular_texture = ExtResource("3_uyv30")
 
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_aiyk2"]
-noise_type = 2
-frequency = 0.0032
-fractal_octaves = 1
-cellular_distance_function = 1
-
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_ehb08"]
-width = 1920
-height = 1080
-noise = SubResource("FastNoiseLite_aiyk2")
-seamless = true
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_4saij"]
-shader = ExtResource("6_ahekq")
-shader_parameter/noise_texture = SubResource("NoiseTexture2D_ehb08")
-shader_parameter/time_scale = 0.0
-shader_parameter/refraction_strength = 0.00500000000465661
-
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_cwrtr"]
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_ahekq"]
 frequency = 0.0007
 
 [sub_resource type="NoiseTexture2D" id="NoiseTexture2D_0jnl2"]
 width = 1920
 height = 1080
-noise = SubResource("FastNoiseLite_cwrtr")
+noise = SubResource("FastNoiseLite_ahekq")
 seamless = true
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_w5n1j"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_2v0wx"]
 shader = ExtResource("7_2v0wx")
 shader_parameter/NOISE_TEXTURE = SubResource("NoiseTexture2D_0jnl2")
 shader_parameter/blur_radius = 4.0
@@ -64,36 +63,39 @@ scale = Vector2(2.7115393, 2.7115393)
 texture = SubResource("CanvasTexture_aiyk2")
 
 [node name="CanvasModulate" type="CanvasModulate" parent="2d_test"]
-color = Color(0.62152386, 0.62152386, 0.6215238, 1)
+color = Color(0.32915825, 0.32915843, 0.3291583, 1)
 
-[node name="star_test" parent="2d_test" instance=ExtResource("4_ahekq")]
-position = Vector2(183, -7)
-mode = 3
-
-[node name="PointLight2D" type="PointLight2D" parent="2d_test/star_test"]
-energy = 1.5
+[node name="PointLight2D2" type="PointLight2D" parent="2d_test"]
+visible = false
+position = Vector2(-327, -340)
+energy = 1.6
 texture = ExtResource("5_2v0wx")
 
-[node name="CanvasLayer2" type="CanvasLayer" parent="2d_test"]
+[node name="PointLight2D3" type="PointLight2D" parent="2d_test"]
+position = Vector2(-467, -336)
+energy = 1.97
+texture = ExtResource("5_2v0wx")
 
-[node name="ColorRect" type="ColorRect" parent="2d_test/CanvasLayer2"]
-material = SubResource("ShaderMaterial_4saij")
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="star_test" parent="2d_test" instance=ExtResource("4_ahekq")]
+position = Vector2(-359, 160)
+
+[node name="PointLight2D" type="PointLight2D" parent="2d_test/star_test"]
+energy = 1.97
+texture = ExtResource("5_2v0wx")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="2d_test"]
 layer = 2
+visible = false
 
 [node name="ColorRect" type="ColorRect" parent="2d_test/CanvasLayer"]
-material = SubResource("ShaderMaterial_w5n1j")
+material = SubResource("ShaderMaterial_2v0wx")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="DirectionalLight2D" type="DirectionalLight2D" parent="2d_test"]
 
 [node name="Screenshot20250611112341" type="Sprite2D" parent="."]
 modulate = Color(0.12591085, 0.12591085, 0.12591082, 1)

@@ -2,7 +2,7 @@ extends Area2D
 class_name BoostAreaTest
 
 var _boosted := false
-@export var boost_amount := 0.25
+@export var boost_amount := 0.3
 
 func _on_body_entered(body):
 	if body is StarTest and not _boosted:
@@ -15,7 +15,7 @@ func _on_body_entered(body):
 		$Sprite2D.modulate = Color.WHITE
 
 func boost_animation(body: StarTest):
-	$warp_effect_test.warp_at(self)
+	$warp_effect_test.warp_at(global_position, 0.8)
 	$GPUParticles2D.emitting = true
 	var vel := body.velocity.normalized()
 	$GPUParticles2D.process_material.direction = Vector3(vel.x, vel.y, 0)

@@ -1,9 +1,10 @@
-[gd_scene load_steps=24 format=3 uid="uid://bkfiu57m6hvl1"]
+[gd_scene load_steps=27 format=3 uid="uid://bkfiu57m6hvl1"]
 
 [ext_resource type="Script" uid="uid://bd8hxwj4f8th8" path="res://star_test.gd" id="1_b24f8"]
 [ext_resource type="Texture2D" uid="uid://cs4uth2vsgk0v" path="res://assets/Group 82.png" id="2_w631g"]
 [ext_resource type="Texture2D" uid="uid://b5xmdgr2f7bs8" path="res://assets/Frame 51.png" id="3_p7dbm"]
 [ext_resource type="Texture2D" uid="uid://bqi3fe5rxdieh" path="res://assets/Star 3.png" id="4_fqsos"]
+[ext_resource type="Texture2D" uid="uid://bii600oivvd4t" path="res://assets/gradient_circle.png" id="5_w631g"]
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_httow"]
 particles_animation = true
@@ -96,6 +97,27 @@ scale_max = 0.59999996
 scale_curve = SubResource("CurveTexture_xbnuk")
 color_ramp = SubResource("GradientTexture1D_dsagd")
 
+[sub_resource type="Shader" id="Shader_w631g"]
+code = "shader_type canvas_item;
+render_mode unshaded;
+
+void vertex() {
+	// Called for every vertex the material is visible on.
+}
+
+void fragment() {
+	// Called for every pixel the material is visible on.
+}
+
+//void light() {
+//	// Called for every pixel for every light affecting the CanvasItem.
+//	// Uncomment to replace the default light processing function with this one.
+//}
+"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_p7dbm"]
+shader = SubResource("Shader_w631g")
+
 [sub_resource type="Gradient" id="Gradient_snpff"]
 offsets = PackedFloat32Array(0, 0.34108528, 0.68992245, 1)
 colors = PackedColorArray(1, 1, 1, 0.1764706, 1, 0.8156863, 1, 1, 1, 0.9137255, 0.6509804, 1, 1, 1, 1, 1)
@@ -112,6 +134,7 @@ movement_particles = NodePath("GPUParticles2D")
 collision_particles = NodePath("GPUParticles2D2")
 held_star_particles = NodePath("GPUParticles2D3")
 camera = NodePath("Camera2D")
+light_texture = ExtResource("5_w631g")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = ExtResource("2_w631g")
@@ -142,6 +165,8 @@ process_material = SubResource("ParticleProcessMaterial_molkx")
 
 [node name="Line2D" type="Line2D" parent="."]
 top_level = true
+material = SubResource("ShaderMaterial_p7dbm")
+width = 200.0
 gradient = SubResource("Gradient_snpff")
 
 [node name="Camera2D" type="Camera2D" parent="."]

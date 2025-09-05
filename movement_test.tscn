@@ -5,10 +5,10 @@
 [ext_resource type="PackedScene" uid="uid://bkfiu57m6hvl1" path="res://star_test.tscn" id="3_dsagd"]
 [ext_resource type="Texture2D" uid="uid://dwl4a74mpyw6e" path="res://assets/Rectangle 175.png" id="5_f07rf"]
 [ext_resource type="Texture2D" uid="uid://coa3x5bijvube" path="res://assets/Rectangle 176.png" id="6_n2kti"]
-[ext_resource type="PackedScene" uid="uid://co41rsbokwiwt" path="res://boost_area.tscn" id="7_unidx"]
-[ext_resource type="PackedScene" uid="uid://c4jci14i2xx02" path="res://connectable_star.tscn" id="9_dsagd"]
+[ext_resource type="PackedScene" uid="uid://co41rsbokwiwt" path="res://mechanics/boost_area.tscn" id="7_unidx"]
+[ext_resource type="PackedScene" uid="uid://c4jci14i2xx02" path="res://mechanics/connectable_star.tscn" id="9_dsagd"]
 [ext_resource type="Texture2D" uid="uid://c7657uywtc5h" path="res://assets/Ellipse 64.png" id="12_ehb08"]
-[ext_resource type="PackedScene" uid="uid://bn4wg88cgotrd" path="res://loop_detector_test.tscn" id="12_epw4j"]
+[ext_resource type="PackedScene" uid="uid://bn4wg88cgotrd" path="res://mechanics/loop_detector_test.tscn" id="12_epw4j"]
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_xbnuk"]
 noise_type = 2
@@ -16,7 +16,7 @@ frequency = 0.0032
 fractal_octaves = 1
 cellular_distance_function = 1
 
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_ehb08"]
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_dsagd"]
 width = 1920
 height = 1080
 noise = SubResource("FastNoiseLite_xbnuk")
@@ -24,9 +24,9 @@ seamless = true
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_epw4j"]
 shader = ExtResource("1_0jnl2")
-shader_parameter/noise_texture = SubResource("NoiseTexture2D_ehb08")
+shader_parameter/noise_texture = SubResource("NoiseTexture2D_dsagd")
 shader_parameter/time_scale = 0.0
-shader_parameter/refraction_strength = 0.005000000004656613
+shader_parameter/refraction_strength = 0.00500000000465661
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_dsagd"]
 frequency = 0.0007
@@ -60,11 +60,18 @@ var _is_looped := false
 func _looped(_body, _sign):
 	if _is_looped:
 		return
-	var new_boost_area = preload(\"res://boost_area.tscn\").instantiate()
+	
+	var new_warp = preload(\"res://warp_effect_test.tscn\").instantiate()
+	add_child(new_warp)
+	new_warp.warp_at(global_position, 0.2)
+	var tween = create_tween()
+	tween.tween_interval(0.5)
+	tween.tween_callback(queue_free)
+	hide()
+	
+	var new_boost_area = preload(\"res://mechanics/boost_area.tscn\").instantiate()
 	add_sibling(new_boost_area)
 	new_boost_area.global_position = global_position
-	await get_tree().process_frame
-	queue_free()
 "
 
 [node name="movement_test" type="Node2D"]
@@ -98,7 +105,6 @@ position = Vector2(547, 351)
 mode = 3
 
 [node name="star_testAGENT" parent="." node_paths=PackedStringArray("ai_follow") instance=ExtResource("3_dsagd")]
-process_mode = 4
 position = Vector2(-686, -580)
 mode = 4
 ai_follow = NodePath("../star_test")

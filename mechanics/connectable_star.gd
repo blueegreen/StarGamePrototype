@@ -14,6 +14,7 @@ func _ready():
 func _on_body_entered(body):
 	if body is StarTest:
 		body.boost(0.6)
+		$warp_effect_test.warp_at(global_position)
 		var held_star : ConnectableStarTest = body.get_held_star()
 		if held_star and held_star != self:
 			held_star.link_star(self)
@@ -21,7 +22,7 @@ func _on_body_entered(body):
 			body.remove_held_star()
 		if can_have_more_links():
 			body.add_held_star(self)
-			$warp_effect_test.warp_at(self)
+			
 
 
 func can_have_more_links() -> bool:

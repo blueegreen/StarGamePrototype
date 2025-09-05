@@ -74,12 +74,11 @@ func _ready():
 	_init_base_speed = base_speed
 	_init_max_speed = max_speed
 	_init_brake_speed = brake_speed
-	# Capture mouse once on start (locked & hidden) so relative events are reliable
-	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	if mode == movement_mode.MOUSE_MIRROR:
+		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
 func _notification(what):
-	if what == NOTIFICATION_APPLICATION_FOCUS_IN:
-		# recapture when the window regains focus (OS may have released it)
+	if what == NOTIFICATION_APPLICATION_FOCUS_IN and mode == movement_mode.MOUSE_MIRROR:
 		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
 func _process(delta):
@@ -118,7 +117,7 @@ func _render_trail():
 		speeds.pop_front()
 	while trail.points.size() > max_points:
 		trail.remove_point(0)
-
+	
 	_update_trail_width_curve()
 
 func _update_trail_width_curve():
@@ -138,6 +137,14 @@ func _movement_animation(delta):
 	target_zoom = target_zoom.limit_length(sqrt(2))
 	camera.zoom = camera.zoom.lerp(target_zoom, delta * 2.)
 
+func _warp_at_pos(pos: Vector2, strength: float):
+	var new_warp = preload("res://warp_effect_test.tscn").instantiate()
+	add_child(new_warp)
+	new_warp.warp_at(pos, strength)
+	var tween = get_tree().create_tween()
+	tween.tween_interval(0.5)
+	tween.tween_callback(func(): new_warp.queue_free())
+
 func _handle_collision():
 	if get_slide_collision_count() < 1:
 		return
@@ -152,6 +159,9 @@ func _handle_collision():
 	if dot < -0.95:
 		velocity = velocity.bounce(normal) * collision_bounce_velocity_fraction
 		velocity = velocity.limit_length(_init_max_speed * boost_multiplier)
+		
+		_warp_at_pos(collision_data.get_position(), velocity.length() / _init_max_speed)
+		
 		if collider is RigidBody2D:
 			collider.apply_impulse(-normal * velocity.length() * collision_applied_impulse, collision_data.get_position() - collider.global_position)
 	else:
@@ -224,13 +234,14 @@ func _mouse_mirror_process(delta):
 
 	var magnitude := _smoothed_relative.length()
 
-	if magnitude <= mirror_deadzone:
-		_mouse_relative = Vector2.ZERO
-		return
+	#if magnitude <= mirror_deadzone:
+		#_mouse_relative = Vector2.ZERO
+		#return
 
 	var relative_weight : float = clamp(magnitude / mouse_sensitivity_range, 0.0, 1.0)
 
 	var acc_mode := Input.get_axis("right_click", "left_click")
+	#if Input.is_action_just_pressed("left_click"): _warp_at_pos(global_position, 0.5)
 	var target_speed := (_init_brake_speed if acc_mode == -1 else _init_max_speed if acc_mode == 1 else _init_base_speed) * _speed_multiplier
 	_current_speed = move_toward(_current_speed, target_speed, delta * mouse_mirror_acc)
 

@@ -1,6 +1,6 @@
 [gd_scene load_steps=13 format=3 uid="uid://c4jci14i2xx02"]
 
-[ext_resource type="Script" uid="uid://ykreyiy4k8bp" path="res://connectable_star.gd" id="1_l5c4m"]
+[ext_resource type="Script" uid="uid://ykreyiy4k8bp" path="res://mechanics/connectable_star.gd" id="1_l5c4m"]
 [ext_resource type="Texture2D" uid="uid://bqi3fe5rxdieh" path="res://assets/Star 3.png" id="2_mrgbj"]
 [ext_resource type="PackedScene" uid="uid://dq8fjpmte5at3" path="res://warp_effect_test.tscn" id="3_mrgbj"]
 

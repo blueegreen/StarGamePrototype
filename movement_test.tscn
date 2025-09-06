@@ -1,8 +1,10 @@
-[gd_scene load_steps=19 format=3 uid="uid://cu35w3crwa4ri"]
+[gd_scene load_steps=27 format=3 uid="uid://cu35w3crwa4ri"]
 
 [ext_resource type="Shader" uid="uid://1pslorcy0i1y" path="res://assets/voronoi_glass.gdshader" id="1_0jnl2"]
 [ext_resource type="Shader" uid="uid://dxm8eyojukobw" path="res://assets/refraction.gdshader" id="1_dsagd"]
 [ext_resource type="PackedScene" uid="uid://bkfiu57m6hvl1" path="res://star_test.tscn" id="3_dsagd"]
+[ext_resource type="Texture2D" uid="uid://y3wdul45c344" path="res://assets/Iron-Man-Background-PNG-Image.png" id="4_xbnuk"]
+[ext_resource type="Texture2D" uid="uid://cvh3cdqf4b148" path="res://assets/v43bTR-superman-png-image-purepng-free-transparent-png.png" id="5_ehb08"]
 [ext_resource type="Texture2D" uid="uid://dwl4a74mpyw6e" path="res://assets/Rectangle 175.png" id="5_f07rf"]
 [ext_resource type="Texture2D" uid="uid://coa3x5bijvube" path="res://assets/Rectangle 176.png" id="6_n2kti"]
 [ext_resource type="PackedScene" uid="uid://co41rsbokwiwt" path="res://mechanics/boost_area.tscn" id="7_unidx"]
@@ -48,6 +50,43 @@ shader_parameter/strength = 1.0
 [sub_resource type="Environment" id="Environment_0jnl2"]
 adjustment_enabled = true
 adjustment_brightness = 1.23
+
+[sub_resource type="LabelSettings" id="LabelSettings_xbnuk"]
+font_size = 56
+
+[sub_resource type="GDScript" id="GDScript_ehb08"]
+script/source = "extends Label
+
+var time := 0.
+
+func _process(delta):
+	time += delta
+	text = \"Score \" + str(floor(time)) + \"  Superman time: \" + str(floor(GlobalRound.superman_time)) + \"   Ironman time: \" + str(floor(GlobalRound.ironman_time))
+	if time >= 60.:
+		end_round()
+
+func end_round():
+	print(\"ROUND OVER\")
+	if GlobalRound.chase:
+		GlobalRound.superman_time = time
+	else:
+		GlobalRound.ironman_time = time
+	GlobalRound.chase = !GlobalRound.chase
+	print(\"Superman time: \" + str(GlobalRound.superman_time) + \", Ironman time: \" + str(GlobalRound.ironman_time))
+	get_tree().call_deferred(\"reload_current_scene\")
+"
+
+[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_xbnuk"]
+resource_local_to_scene = true
+normal = Vector2(1, 0)
+
+[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_ehb08"]
+
+[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_epw4j"]
+normal = Vector2(-1, 0)
+
+[sub_resource type="WorldBoundaryShape2D" id="WorldBoundaryShape2D_molkx"]
+normal = Vector2(0, 1)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_unidx"]
 size = Vector2(92, 92)
@@ -100,13 +139,54 @@ grow_vertical = 2
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_0jnl2")
 
+[node name="Sprite2D4" type="Sprite2D" parent="."]
+scale = Vector2(78.97455, 45.216766)
+texture = ExtResource("5_f07rf")
+
+[node name="CanvasLayer3" type="CanvasLayer" parent="."]
+
+[node name="Label" type="Label" parent="CanvasLayer3"]
+offset_right = 328.0
+offset_bottom = 77.0
+text = "Score: "
+label_settings = SubResource("LabelSettings_xbnuk")
+script = SubResource("GDScript_ehb08")
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(-3674, 0)
+shape = SubResource("WorldBoundaryShape2D_xbnuk")
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(0, 2128)
+shape = SubResource("WorldBoundaryShape2D_ehb08")
+
+[node name="CollisionShape2D3" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(3704, 0)
+shape = SubResource("WorldBoundaryShape2D_epw4j")
+
+[node name="CollisionShape2D4" type="CollisionShape2D" parent="StaticBody2D"]
+position = Vector2(0, -2105)
+shape = SubResource("WorldBoundaryShape2D_molkx")
+
 [node name="star_test" parent="." instance=ExtResource("3_dsagd")]
 position = Vector2(547, 351)
 
+[node name="IronManBackgroundPngImage" type="Sprite2D" parent="star_test"]
+scale = Vector2(0.13373016, 0.13373016)
+texture = ExtResource("4_xbnuk")
+
 [node name="star_testAGENT" parent="." node_paths=PackedStringArray("ai_follow") instance=ExtResource("3_dsagd")]
-position = Vector2(-686, -580)
+position = Vector2(1312, 352)
 mode = 4
 ai_follow = NodePath("../star_test")
+base_turn_rate = 4.0
+acc_turn_rate = 8.0
+
+[node name="V43bTrSupermanPngImagePurepngFreeTransparentPng" type="Sprite2D" parent="star_testAGENT"]
+scale = Vector2(0.4525, 0.4525)
+texture = ExtResource("5_ehb08")
 
 [node name="environment_objects" type="Node2D" parent="."]
 
@@ -217,6 +297,7 @@ script = SubResource("GDScript_epw4j")
 [node name="loop_detector_test" parent="Sprite2D3" instance=ExtResource("12_epw4j")]
 detection_radius = 1000.0
 
+[connection signal="round_end" from="star_test" to="CanvasLayer3/Label" method="end_round"]
 [connection signal="looped" from="Sprite2D/loop_detector_test" to="Sprite2D" method="_looped"]
 [connection signal="looped" from="Sprite2D2/loop_detector_test" to="Sprite2D2" method="_looped"]
 [connection signal="looped" from="Sprite2D3/loop_detector_test" to="Sprite2D3" method="_looped"]

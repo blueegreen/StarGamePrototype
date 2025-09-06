@@ -30,18 +30,19 @@ animations = [{
 }],
 "loop": true,
 "name": &"default",
-"speed": 1.0
+"speed": 5.0
 }]
 
-[node name="simple_star" type="Node2D"]
+[node name="simple_star" type="Node2D" node_paths=PackedStringArray("sprite")]
 script = ExtResource("1_b7pvt")
 text = "Hello there"
+sprite = NodePath("AnimatedSprite2D")
 
 [node name="loop_detector_test" parent="." instance=ExtResource("2_iytix")]
 detection_radius = 600.0
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
-scale = Vector2(2.52, 2.52)
+scale = Vector2(2.5, 2.5)
 sprite_frames = SubResource("SpriteFrames_j33hg")
 autoplay = "default"
 frame_progress = 0.08809902

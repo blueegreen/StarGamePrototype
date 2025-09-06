@@ -82,6 +82,7 @@ func _notification(what):
 		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
 func _process(delta):
+	time += delta
 	_render_trail()
 	_movement_animation(delta)
 	_handle_boost(delta)
@@ -141,10 +142,12 @@ func _warp_at_pos(pos: Vector2, strength: float):
 	var new_warp = preload("res://warp_effect_test.tscn").instantiate()
 	add_child(new_warp)
 	new_warp.warp_at(pos, strength)
-	var tween = get_tree().create_tween()
+	var tween = create_tween()
 	tween.tween_interval(0.5)
 	tween.tween_callback(func(): new_warp.queue_free())
 
+var time := 0.
+signal round_end
 func _handle_collision():
 	if get_slide_collision_count() < 1:
 		return
@@ -152,7 +155,11 @@ func _handle_collision():
 	var collision_data := get_slide_collision(0)
 	var normal = collision_data.get_normal()
 	var collider = collision_data.get_collider()
-
+	
+	if collider is StarTest:
+		round_end.emit()
+		return
+	
 	var v_norm = velocity.normalized()
 	var dot = v_norm.dot(normal)
 
@@ -263,10 +270,13 @@ func _ai_mode_process(delta):
 		return
 	var dist_to_follow = global_position.distance_to(ai_follow.global_position)
 	var acc_mode := -1. if dist_to_follow < 200. else 0. if dist_to_follow < 600. else 1.
+	acc_mode = 1. 
 	var target_speed = (_init_brake_speed if acc_mode == -1 else _init_max_speed if acc_mode == 1 else _init_base_speed) * _speed_multiplier
 	_current_speed = move_toward(_current_speed, target_speed, delta * mouse_mode_acc)
+	
+	var follow_pos = ai_follow.global_position if GlobalRound.chase else global_position - global_position.direction_to(ai_follow.global_position) * 50.
 
-	var intended_dir = global_position.angle_to_point(ai_follow.global_position) if global_position.distance_to(ai_follow.global_position) > mouse_deadzone_radius else _direction
+	var intended_dir = global_position.angle_to_point(follow_pos) if global_position.distance_to(follow_pos) > mouse_deadzone_radius else _direction
 	_direction = lerp_angle(_direction, intended_dir, (base_turn_rate if not acc_mode else acc_turn_rate) * delta)
 
 	velocity = Vector2.from_angle(_direction) * _current_speed

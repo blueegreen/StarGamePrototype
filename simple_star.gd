@@ -4,12 +4,15 @@ class_name BaseStarTest
 @export var canvas_layer : CanvasLayer
 @export var connections : Dictionary[BaseStarTest, bool]
 @export var text : String
+@export var activated := false
+@export var sprite : AnimatedSprite2D
 var _lines : Dictionary[BaseStarTest, Line2D]
 
 func _ready():
 	for n in connections:
 		if connections[n]:
 			connect_to(n, true)
+	if activated: activation_animation()
 
 #func set_lines():
 	#for connected_star in _lines:
@@ -29,15 +32,17 @@ func _ready():
 		#
 		#_lines[connected_star].set_point_position(1, to_local(final_pos))
 
+func _warp_at_pos(pos: Vector2, strength: float):
+	var new_warp = preload("res://warp_effect_test.tscn").instantiate()
+	add_child(new_warp)
+	new_warp.warp_at(pos, strength)
+	var tween = get_tree().create_tween()
+	tween.tween_interval(0.5)
+	tween.tween_callback(func(): new_warp.queue_free())
 
-func _on_loop_detector_test_looped(_ship, _direction):
-	for n in connections:
-		if connections[n]:
-			continue
-		connections[n] = true
-		connect_to(n)
-	
+func activation_animation():
 	var text_block := Label.new()
+	text_block.modulate = Color(1., 1., 1., 0.)
 	text_block.text = text
 	text_block.label_settings = load("res://assets/dialogue_text_settings.tres")
 	
@@ -47,6 +52,24 @@ func _on_loop_detector_test_looped(_ship, _direction):
 		add_child(text_block)
 	
 	text_block.global_position = global_position
+	var tween = create_tween()
+	tween.tween_property(sprite, "scale", Vector2.ONE * 5., 1.).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
+	tween.set_parallel().tween_property(sprite, "rotation", 2*PI, 1.).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
+	tween.tween_property(text_block, "modulate", Color.WHITE, 1.).set_ease(Tween.EASE_IN_OUT)
+	
+	_warp_at_pos(global_position, 0.8)
+	
+func _on_loop_detector_test_looped(_ship, _direction):
+	for n in connections:
+		if connections[n]:
+			continue
+		connections[n] = true
+		connect_to(n)
+	
+	if activated:
+		return
+	activated = true
+	activation_animation()
 
 func connect_to(star: BaseStarTest, quick := false):
 	if star == self:

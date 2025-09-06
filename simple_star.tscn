@@ -33,9 +33,10 @@ animations = [{
 "speed": 1.0
 }]
 
-[node name="simple_star" type="Node2D"]
+[node name="simple_star" type="Node2D" node_paths=PackedStringArray("sprite")]
 script = ExtResource("1_b7pvt")
 text = "Hello there"
+sprite = NodePath("AnimatedSprite2D")
 
 [node name="loop_detector_test" parent="." instance=ExtResource("2_iytix")]
 detection_radius = 600.0

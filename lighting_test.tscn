@@ -80,7 +80,7 @@ texture = ExtResource("5_2v0wx")
 position = Vector2(-359, 160)
 
 [node name="PointLight2D" type="PointLight2D" parent="2d_test/star_test"]
-energy = 1.97
+energy = 2.5
 texture = ExtResource("5_2v0wx")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="2d_test"]

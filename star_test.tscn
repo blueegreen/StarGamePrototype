@@ -134,7 +134,7 @@ sprite = NodePath("Sprite2D")
 movement_particles = NodePath("GPUParticles2D")
 collision_particles = NodePath("GPUParticles2D2")
 held_star_particles = NodePath("GPUParticles2D3")
-camera = NodePath("Camera2D")
+camera = NodePath("")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = ExtResource("2_w631g")
@@ -168,9 +168,6 @@ top_level = true
 material = SubResource("ShaderMaterial_p7dbm")
 width = 200.0
 gradient = SubResource("Gradient_snpff")
-
-[node name="Camera2D" type="Camera2D" parent="."]
-position_smoothing_enabled = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_n2kti")

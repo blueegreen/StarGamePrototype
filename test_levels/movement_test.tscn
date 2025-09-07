@@ -1,8 +1,9 @@
-[gd_scene load_steps=19 format=3 uid="uid://cu35w3crwa4ri"]
+[gd_scene load_steps=20 format=3 uid="uid://cu35w3crwa4ri"]
 
 [ext_resource type="Shader" uid="uid://1pslorcy0i1y" path="res://assets/voronoi_glass.gdshader" id="1_0jnl2"]
 [ext_resource type="Shader" uid="uid://dxm8eyojukobw" path="res://assets/refraction.gdshader" id="1_dsagd"]
 [ext_resource type="PackedScene" uid="uid://bkfiu57m6hvl1" path="res://star_test.tscn" id="3_dsagd"]
+[ext_resource type="PackedScene" uid="uid://dbq6b6pifrls2" path="res://camera_2d.tscn" id="4_0jnl2"]
 [ext_resource type="Texture2D" uid="uid://dwl4a74mpyw6e" path="res://assets/Rectangle 175.png" id="5_f07rf"]
 [ext_resource type="Texture2D" uid="uid://coa3x5bijvube" path="res://assets/Rectangle 176.png" id="6_n2kti"]
 [ext_resource type="PackedScene" uid="uid://co41rsbokwiwt" path="res://mechanics/boost_area.tscn" id="7_unidx"]
@@ -107,6 +108,9 @@ position = Vector2(547, 351)
 position = Vector2(-686, -580)
 mode = 4
 ai_follow = NodePath("../star_test")
+
+[node name="camera_2d" parent="." node_paths=PackedStringArray("player") instance=ExtResource("4_0jnl2")]
+player = NodePath("../star_test")
 
 [node name="environment_objects" type="Node2D" parent="."]
 

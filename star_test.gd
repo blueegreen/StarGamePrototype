@@ -14,7 +14,6 @@ enum movement_mode {MOUSE_FOLLOW, ARROW_ROTATE, MOUSE_ANCHOR, MOUSE_MIRROR, AI_M
 @export var collision_bounce_velocity_fraction := 0.8
 @export var collision_slide_boost_time := 1.
 @export var collision_applied_impulse := 0.1
-@export var max_camera_zoom := Vector2(0.5, 0.5)
 @export var ai_follow : StarTest
 
 @export_category("mouse mode variables")
@@ -131,11 +130,11 @@ func _update_trail_width_curve():
 
 	trail.width_curve = curve
 
-func _movement_animation(delta):
+func _movement_animation(_delta):
 	movement_particles.amount_ratio = velocity.length() / (_init_max_speed * _speed_multiplier)
-	var target_zoom := Vector2.ONE.lerp(max_camera_zoom, velocity.length() / (_init_max_speed * boost_multiplier))
-	target_zoom = target_zoom.limit_length(sqrt(2))
-	camera.zoom = camera.zoom.lerp(target_zoom, delta * 2.)
+	#var target_zoom := Vector2.ONE.lerp(max_camera_zoom, velocity.length() / (_init_max_speed * boost_multiplier))
+	#target_zoom = target_zoom.limit_length(sqrt(2))
+	#camera.zoom = camera.zoom.lerp(target_zoom, delta * 2.)
 
 func _warp_at_pos(pos: Vector2, strength: float):
 	var new_warp = preload("res://warp_effect_test.tscn").instantiate()
@@ -231,7 +230,6 @@ func _arrow_mode_process(delta):
 
 func _mouse_mirror_process(delta):
 	_smoothed_relative = _smoothed_relative.lerp(_mouse_relative, clamp(mirror_relative_smooth * delta, 0.0, 1.0))
-
 	var magnitude := _smoothed_relative.length()
 
 	#if magnitude <= mirror_deadzone:

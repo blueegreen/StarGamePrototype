@@ -1,0 +1,274 @@
+[gd_scene load_steps=25 format=3 uid="uid://crvny4mgpwgpr"]
+
+[ext_resource type="Shader" uid="uid://djjxaepclwqpi" path="res://assets/2d3dproject.gdshader" id="1_yj6mf"]
+[ext_resource type="Shader" uid="uid://1pslorcy0i1y" path="res://assets/voronoi_glass.gdshader" id="2_6xj4r"]
+[ext_resource type="Shader" uid="uid://dxm8eyojukobw" path="res://assets/refraction.gdshader" id="3_2lh5k"]
+[ext_resource type="PackedScene" uid="uid://bkfiu57m6hvl1" path="res://star_test.tscn" id="4_kmj7k"]
+[ext_resource type="PackedScene" uid="uid://dbq6b6pifrls2" path="res://camera_2d.tscn" id="5_rqqg2"]
+[ext_resource type="Texture2D" uid="uid://dwl4a74mpyw6e" path="res://assets/Rectangle 175.png" id="6_6pgrt"]
+[ext_resource type="Texture2D" uid="uid://coa3x5bijvube" path="res://assets/Rectangle 176.png" id="7_qqa2g"]
+[ext_resource type="PackedScene" uid="uid://co41rsbokwiwt" path="res://mechanics/boost_area.tscn" id="8_ubtk6"]
+[ext_resource type="PackedScene" uid="uid://c4jci14i2xx02" path="res://mechanics/connectable_star.tscn" id="9_qkvt5"]
+[ext_resource type="Texture2D" uid="uid://c7657uywtc5h" path="res://assets/Ellipse 64.png" id="10_ebj1x"]
+[ext_resource type="PackedScene" uid="uid://bn4wg88cgotrd" path="res://mechanics/loop_detector_test.tscn" id="11_sai1q"]
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_25pvk"]
+viewport_path = NodePath("SubViewport")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_25pvk"]
+resource_local_to_scene = true
+render_priority = 0
+shader = ExtResource("1_yj6mf")
+shader_parameter/viewport_texture = SubResource("ViewportTexture_25pvk")
+
+[sub_resource type="QuadMesh" id="QuadMesh_hmaby"]
+resource_local_to_scene = true
+material = SubResource("ShaderMaterial_25pvk")
+size = Vector2(1920, 1080)
+subdivide_width = 1920
+subdivide_depth = 1080
+orientation = 1
+
+[sub_resource type="GDScript" id="GDScript_07cxo"]
+script/source = "extends Node3D
+
+@export var subviewport : SubViewport;
+
+func _input(event):
+	if not subviewport:
+		return
+	subviewport.push_input(event.duplicate())
+"
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_fxp65"]
+noise_type = 2
+frequency = 0.0032
+fractal_octaves = 1
+cellular_distance_function = 1
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_dsagd"]
+width = 1920
+height = 1080
+noise = SubResource("FastNoiseLite_fxp65")
+seamless = true
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_oil34"]
+shader = ExtResource("2_6xj4r")
+shader_parameter/noise_texture = SubResource("NoiseTexture2D_dsagd")
+shader_parameter/time_scale = 0.0
+shader_parameter/refraction_strength = 0.00500000000465661
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_xdx62"]
+frequency = 0.0007
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_n87fm"]
+width = 1920
+height = 1080
+noise = SubResource("FastNoiseLite_xdx62")
+seamless = true
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ug24y"]
+shader = ExtResource("3_2lh5k")
+shader_parameter/NOISE_TEXTURE = SubResource("NoiseTexture2D_n87fm")
+shader_parameter/blur_radius = 4.0
+shader_parameter/halo_strength = 0.02
+shader_parameter/noise_scale = 1.0
+shader_parameter/strength = 1.0
+
+[sub_resource type="Environment" id="Environment_wc7r6"]
+adjustment_enabled = true
+adjustment_brightness = 1.23
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_51j0a"]
+size = Vector2(92, 92)
+
+[sub_resource type="GDScript" id="GDScript_whbov"]
+script/source = "extends Sprite2D
+
+var _is_looped := false
+
+func _looped(_body, _sign):
+	if _is_looped:
+		return
+	
+	var new_warp = preload(\"res://warp_effect_test.tscn\").instantiate()
+	add_child(new_warp)
+	new_warp.warp_at(global_position, 0.2)
+	var tween = create_tween()
+	tween.tween_interval(0.5)
+	tween.tween_callback(queue_free)
+	hide()
+	
+	var new_boost_area = preload(\"res://mechanics/boost_area.tscn\").instantiate()
+	add_sibling(new_boost_area)
+	new_boost_area.global_position = global_position
+"
+
+[node name="projection_test" type="Node3D"]
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 0, 693.5648, 0)
+fov = 84.6
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("QuadMesh_hmaby")
+
+[node name="input_handler" type="Node3D" parent="." node_paths=PackedStringArray("subviewport")]
+script = SubResource("GDScript_07cxo")
+subviewport = NodePath("../SubViewport")
+
+[node name="SubViewport" type="SubViewport" parent="."]
+disable_3d = true
+size = Vector2i(1920, 1080)
+
+[node name="Node2D" type="Node2D" parent="SubViewport"]
+
+[node name="CanvasLayer2" type="CanvasLayer" parent="SubViewport/Node2D"]
+
+[node name="ColorRect" type="ColorRect" parent="SubViewport/Node2D/CanvasLayer2"]
+material = SubResource("ShaderMaterial_oil34")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="CanvasLayer" type="CanvasLayer" parent="SubViewport/Node2D"]
+layer = 2
+
+[node name="ColorRect" type="ColorRect" parent="SubViewport/Node2D/CanvasLayer"]
+material = SubResource("ShaderMaterial_ug24y")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="SubViewport/Node2D"]
+environment = SubResource("Environment_wc7r6")
+
+[node name="star_test" parent="SubViewport/Node2D" instance=ExtResource("4_kmj7k")]
+position = Vector2(547, 351)
+
+[node name="star_testAGENT" parent="SubViewport/Node2D" node_paths=PackedStringArray("ai_follow") instance=ExtResource("4_kmj7k")]
+position = Vector2(-686, -580)
+mode = 4
+ai_follow = NodePath("../star_test")
+
+[node name="camera_2d" parent="SubViewport/Node2D" node_paths=PackedStringArray("player") instance=ExtResource("5_rqqg2")]
+player = NodePath("../star_test")
+
+[node name="environment_objects" type="Node2D" parent="SubViewport/Node2D"]
+
+[node name="RigidBody2D" type="RigidBody2D" parent="SubViewport/Node2D/environment_objects"]
+position = Vector2(242, 223)
+rotation = -0.5235988
+gravity_scale = 0.0
+lock_rotation = true
+linear_damp = 0.5
+
+[node name="Sprite2D" type="Sprite2D" parent="SubViewport/Node2D/environment_objects/RigidBody2D"]
+scale = Vector2(2.2395658, 2.2395658)
+texture = ExtResource("6_6pgrt")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="SubViewport/Node2D/environment_objects/RigidBody2D"]
+scale = Vector2(2.2395658, 2.2395658)
+shape = SubResource("RectangleShape2D_51j0a")
+
+[node name="RigidBody2D2" type="RigidBody2D" parent="SubViewport/Node2D/environment_objects"]
+position = Vector2(447.99985, 647.99994)
+rotation = 0.2617994
+scale = Vector2(0.99999994, 0.99999994)
+gravity_scale = 0.0
+lock_rotation = true
+linear_damp = 0.5
+
+[node name="Sprite2D" type="Sprite2D" parent="SubViewport/Node2D/environment_objects/RigidBody2D2"]
+scale = Vector2(1.691189, 1.691189)
+texture = ExtResource("6_6pgrt")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="SubViewport/Node2D/environment_objects/RigidBody2D2"]
+scale = Vector2(1.691189, 1.691189)
+shape = SubResource("RectangleShape2D_51j0a")
+
+[node name="RigidBody2D3" type="RigidBody2D" parent="SubViewport/Node2D/environment_objects"]
+position = Vector2(394, -301)
+rotation = -3.1415925
+mass = 300.0
+gravity_scale = 0.0
+lock_rotation = true
+linear_damp = 0.5
+
+[node name="Sprite2D" type="Sprite2D" parent="SubViewport/Node2D/environment_objects/RigidBody2D3"]
+position = Vector2(268.09402, -211.71371)
+scale = Vector2(3.638, 3.638)
+texture = ExtResource("7_qqa2g")
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="SubViewport/Node2D/environment_objects/RigidBody2D3"]
+position = Vector2(268.094, -211.7137)
+scale = Vector2(4.037761, 4.037761)
+polygon = PackedVector2Array(103.999985, -89.000015, 105, 104, -83.999985, 104.000015, -50.999985, 98.000015, -28.999985, 91.00001, -1.9999847, 78.00001, 19, 63, 38, 49, 56, 31, 74, 6, 82, -11, 93, -35, 100, -62)
+
+[node name="boost_ramp" type="Node2D" parent="SubViewport/Node2D/environment_objects"]
+position = Vector2(576, -1024)
+rotation = 1.3089969
+
+[node name="boost_area" parent="SubViewport/Node2D/environment_objects/boost_ramp" instance=ExtResource("8_ubtk6")]
+position = Vector2(594, -62.99994)
+rotation = -1.3089969
+
+[node name="boost_area2" parent="SubViewport/Node2D/environment_objects/boost_ramp" instance=ExtResource("8_ubtk6")]
+position = Vector2(695, -197.99994)
+rotation = -1.3089969
+
+[node name="boost_area3" parent="SubViewport/Node2D/environment_objects/boost_ramp" instance=ExtResource("8_ubtk6")]
+position = Vector2(841, -267.99988)
+rotation = -1.3089969
+
+[node name="boost_area4" parent="SubViewport/Node2D/environment_objects/boost_ramp" instance=ExtResource("8_ubtk6")]
+position = Vector2(1004, -295)
+rotation = -1.3089969
+
+[node name="interactable_objects" type="Node2D" parent="SubViewport/Node2D"]
+
+[node name="connectable_star" parent="SubViewport/Node2D/interactable_objects" instance=ExtResource("9_qkvt5")]
+position = Vector2(-1145, -686)
+
+[node name="connectable_star2" parent="SubViewport/Node2D/interactable_objects" instance=ExtResource("9_qkvt5")]
+position = Vector2(-1815, -912)
+
+[node name="connectable_star3" parent="SubViewport/Node2D/interactable_objects" instance=ExtResource("9_qkvt5")]
+position = Vector2(-1216, -1362)
+
+[node name="Sprite2D" type="Sprite2D" parent="SubViewport/Node2D"]
+position = Vector2(-1343, 366)
+scale = Vector2(0.36, 0.36)
+texture = ExtResource("10_ebj1x")
+script = SubResource("GDScript_whbov")
+
+[node name="loop_detector_test" parent="SubViewport/Node2D/Sprite2D" instance=ExtResource("11_sai1q")]
+detection_radius = 1000.0
+
+[node name="Sprite2D2" type="Sprite2D" parent="SubViewport/Node2D"]
+position = Vector2(-1704, 488)
+scale = Vector2(0.36, 0.36)
+texture = ExtResource("10_ebj1x")
+script = SubResource("GDScript_whbov")
+
+[node name="loop_detector_test" parent="SubViewport/Node2D/Sprite2D2" instance=ExtResource("11_sai1q")]
+detection_radius = 1000.0
+
+[node name="Sprite2D3" type="Sprite2D" parent="SubViewport/Node2D"]
+position = Vector2(-2053, 310)
+scale = Vector2(0.36, 0.36)
+texture = ExtResource("10_ebj1x")
+script = SubResource("GDScript_whbov")
+
+[node name="loop_detector_test" parent="SubViewport/Node2D/Sprite2D3" instance=ExtResource("11_sai1q")]
+detection_radius = 1000.0
+
+[connection signal="looped" from="SubViewport/Node2D/Sprite2D/loop_detector_test" to="SubViewport/Node2D/Sprite2D" method="_looped"]
+[connection signal="looped" from="SubViewport/Node2D/Sprite2D2/loop_detector_test" to="SubViewport/Node2D/Sprite2D2" method="_looped"]
+[connection signal="looped" from="SubViewport/Node2D/Sprite2D3/loop_detector_test" to="SubViewport/Node2D/Sprite2D3" method="_looped"]
